@@ -40,3 +40,4 @@ coverage/
 .idea/
 *.sublime-project
 *.sublime-workspace
+.env.test
