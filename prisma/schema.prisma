@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  tier         Tier          @default(FREE)
+  projects     VideoProject[]
+  createdAt    DateTime      @default(now())
+}
+
+enum Tier {
+  FREE
+  PRO
+}
+
+model VideoProject {
+  id         String        @id @default(uuid())
+  user       User          @relation(fields: [userId], references: [id])
+  userId     String
+  title      String
+  status     ProjectStatus @default(DRAFT)
+  scenes     Scene[]
+  jobs       GenerationJob[]
+  assets     Asset[]
+  createdAt  DateTime      @default(now())
+}
+
+enum ProjectStatus {
+  DRAFT
+  GENERATING
+  READY
+  FAILED
+}
+
+model Scene {
+  id             String        @id @default(uuid())
+  videoProject   VideoProject  @relation(fields: [videoProjectId], references: [id])
+  videoProjectId String
+  order          Int
+  visualPrompt   String
+  narrationText  String
+}
+
+model GenerationJob {
+  id             String        @id @default(uuid())
+  videoProject   VideoProject  @relation(fields: [videoProjectId], references: [id])
+  videoProjectId String
+  type           JobType
+  status         JobStatus     @default(QUEUED)
+  error          String?
+  createdAt      DateTime      @default(now())
+}
+
+enum JobType {
+  STORY
+  VIDEO
+  VOICE
+  SUBTITLES
+  SHORT
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model Asset {
+  id             String        @id @default(uuid())
+  videoProject   VideoProject  @relation(fields: [videoProjectId], references: [id])
+  videoProjectId String
+  type           AssetType
+  url            String
+  createdAt      DateTime      @default(now())
+}
+
+enum AssetType {
+  VIDEO_LONG
+  VIDEO_SHORT
+  AUDIO
+  SUBTITLE
+}
